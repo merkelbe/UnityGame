@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TurretHealth : MonoBehaviour {
+public class DamageHandlerChild : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
@@ -23,7 +23,7 @@ public class TurretHealth : MonoBehaviour {
             damage = damageScript.damage;
 
             // Calls parent object to take damage.
-            GetComponentInParent<TurretMain>().TakeDamage(damage);
+            GetComponentInParent<IDamageable>().TakeDamage(damage);
             
             // Destroy the bullet
             Destroy(collision.gameObject);

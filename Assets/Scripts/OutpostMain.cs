@@ -3,15 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class TurretMain : MonoBehaviour {
-
-    public int HP;
-    public Text displayText;
-
+public class OutpostMain : MonoBehaviour, IDamageable {
+    
     // Use this for initialization
     void Start()
     {
-        UpdateDisplayText();
     }
 
     // Update is called once per frame
@@ -22,12 +18,7 @@ public class TurretMain : MonoBehaviour {
 
     public void TakeDamage(int damageAmount)
     {
-        HP -= damageAmount;
-        UpdateDisplayText();
+        // Currently is indestructable
     }
-
-    private void UpdateDisplayText()
-    {
-        displayText.text = "Turret HP: " + HP;
-    }
+    
 }

@@ -81,16 +81,21 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\TurretFiring.cs" />
-    <Compile Include="Assets\GameObjectTracker.cs" />
-    <Compile Include="Assets\HealthManager.cs" />
     <Compile Include="Assets\Scripts\BaseHealth.cs" />
     <Compile Include="Assets\Scripts\BulletDamage.cs" />
     <Compile Include="Assets\Scripts\BulletMovement.cs" />
     <Compile Include="Assets\Scripts\CameraController.cs" />
+    <Compile Include="Assets\Scripts\CollisionDetection.cs" />
+    <Compile Include="Assets\Scripts\IDamageable.cs" />
+    <Compile Include="Assets\Scripts\DamageHandlerChild.cs" />
+    <Compile Include="Assets\Scripts\GameObjectTracker.cs" />
+    <Compile Include="Assets\Scripts\HealthManager.cs" />
+    <Compile Include="Assets\Scripts\MinimapCameraController.cs" />
+    <Compile Include="Assets\Scripts\OutpostController.cs" />
+    <Compile Include="Assets\Scripts\OutpostMain.cs" />
     <Compile Include="Assets\Scripts\PlayerMovement.cs" />
-    <Compile Include="Assets\TurretHealth.cs" />
-    <Compile Include="Assets\TurretMain.cs" />
+    <Compile Include="Assets\Scripts\TurretFiring.cs" />
+    <Compile Include="Assets\Scripts\TurretMain.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
