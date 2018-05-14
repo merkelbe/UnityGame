@@ -40,8 +40,8 @@ public class OutpostController : MonoBehaviour {
                 GiveChargingReward();
             }
             outpostPower = Mathf.Min(outpostPower + chargingRate, maxOutpostPower);
-            
-            displayText.text = "Outpost Power: " + System.String.Format("0.00%", outpostPower);
+
+            displayText.text = string.Format("Outpost Power: {0:P2}", outpostPower/100);
         }
 
 	}
