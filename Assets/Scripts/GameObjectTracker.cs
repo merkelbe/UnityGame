@@ -1,61 +1,40 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GameObjectTracker : MonoBehaviour {
     
-    public string TrackingTag = "Hero Team";
-    public int MaxScale = 10; // When turret is instantiated, perimeter grows from nothing to max scale in order to hit entities already in the perimeter upon in
-    public bool growPerimeter;
+    public string TrackingTag;
 
-    private int scaleReset = 2;
+    private float trackingRadius; // ASSUMPTION: Transform is in shape of a cylinder
+
     private List<GameObject> targetsInRange;
-    private bool growing;
-    private float precision;
+
 
 	// Use this for initialization
-	void Start () {
+	void Start ()
+    {
+        trackingRadius = this.transform.localScale.x;
         targetsInRange = new List<GameObject>();
-        growing = false;
-        precision = 0.1f;
-        if (growPerimeter)
+        GameObject[] allGameObjects = GameObject.FindGameObjectsWithTag(TrackingTag);
+        foreach(GameObject gameObject in allGameObjects)
         {
-            GrowPerimeter();
+            if (TargetInRange(gameObject) && !targetsInRange.Contains(gameObject))
+            {
+                targetsInRange.Add(gameObject);
+            }
         }
-	}
+    }
 	
 	// Update is called once per frame
 	void Update () {
-        // Handles growing of hit box until full size
-        if (growing)
-        {
-            transform.localScale = new Vector3(Mathf.Min(transform.localScale.x + precision, MaxScale), transform.localScale.y, Mathf.Min(transform.localScale.z + precision, MaxScale));
-            if(transform.localScale.x >= MaxScale)
-            {
-                growing = false;
-            }
-        }
+
 	}
-
-    public bool HasTargetInRange()
-    {
-        return targetsInRange.Count > 0;
-    }
-
-    public GameObject GetTargetInRange()
-    {
-        return targetsInRange[0];
-    }
 
     public List<GameObject> GetTargetsInRange()
     {
         return targetsInRange;
-    }
-
-    private void GrowPerimeter()
-    {
-        growing = true;
-        transform.localScale = new Vector3(scaleReset, transform.localScale.y, scaleReset);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -75,10 +54,32 @@ public class GameObjectTracker : MonoBehaviour {
         GameObject entity = other.gameObject;
         if (entity.CompareTag(TrackingTag))
         {
-            if (targetsInRange.Contains(entity))
-            {
-                targetsInRange.Remove(entity);
-            }
+            StopTrackingGameObject(entity);
         }
+    }
+
+    public void StopTrackingGameObject(GameObject gameObject)
+    {
+        if (targetsInRange.Contains(gameObject))
+        {
+            targetsInRange.Remove(gameObject);
+        }
+    }
+
+    public void StartTrackingGameObject(GameObject gameObject)
+    {
+        if (!targetsInRange.Contains(gameObject))
+        {
+            targetsInRange.Add(gameObject);
+        }
+    }
+
+    public bool TargetInRange(GameObject gameObject)
+    {
+        // Need to zero out y coordinate to make tracking area a cylinder to match the collider
+        Vector3 turretXZPosition = new Vector3(this.transform.position.x, 0.0f, this.transform.position.z);
+        Vector3 gameObjectXZPosition = new Vector3(gameObject.transform.position.x, 0.0f, gameObject.transform.position.z);
+
+        return Vector3.Distance(turretXZPosition, gameObjectXZPosition) <= trackingRadius;
     }
 }

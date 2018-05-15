@@ -8,9 +8,24 @@ public class TurretFiring : MonoBehaviour {
     public float CoolDownTime = 5;
     public GameObject Bullet;
 
+    // Difficulty of Turret from 0 to 1.  
+    // Zero shoots at where they are right now and 
+    // 1 shoots at where they will be if they keep the current velocity.
+    [Range(0, 1)]
+    public float TurretDifficulty;
+
     private float bulletVelocity;
     
     private float timer;
+
+    private Vector3 turretPosition;
+    private Vector3 enemyPosition;
+    private Vector3 enemyVelocity;
+
+    // Used to figure out where to shoot to hit the enemy
+    private float a;
+    private float b;
+    private float c;
 
 
 	// Use this for initialization
@@ -22,7 +37,8 @@ public class TurretFiring : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         GameObjectTracker gameObjectTracker = GetComponentInChildren<GameObjectTracker>();
-        if (gameObjectTracker.HasTargetInRange())
+        bool hasTargetInRange = gameObjectTracker.GetTargetsInRange().Count > 0;
+        if (hasTargetInRange)
         {
             if(timer == 0)
             {
@@ -31,7 +47,8 @@ public class TurretFiring : MonoBehaviour {
                 for (int i = 0; i < possibleEnemies.Count; ++i)
                 {
                     GameObject enemy = possibleEnemies[i];
-                    if (ClearShotAtEnemy(enemy))
+
+                    if (enemyAlive(enemy) && clearShotAtEnemy(enemy))
                     {
                         Vector3 turretPosition = this.transform.position;
                         Vector3 enemyPosition = enemy.transform.position;
@@ -45,7 +62,7 @@ public class TurretFiring : MonoBehaviour {
                         if(solutions.Count > 0)
                         {
                             float solution = solutions.Max();
-                            Vector3 enemyFuturePosition = enemyPosition + solution * enemyVelocity;
+                            Vector3 enemyFuturePosition = enemyPosition + solution * TurretDifficulty * enemyVelocity;
                             FireAt(enemyFuturePosition);
                         }
                         
@@ -62,7 +79,7 @@ public class TurretFiring : MonoBehaviour {
         }
 	}
 
-    private bool ClearShotAtEnemy(GameObject enemy)
+    private bool clearShotAtEnemy(GameObject enemy)
     {
         RaycastHit hit;
         Vector3 fireDirection = enemy.transform.position - this.transform.position;
@@ -78,6 +95,19 @@ public class TurretFiring : MonoBehaviour {
                 return true;
             }
         }
+        return false;
+    }
+
+    private bool enemyAlive(GameObject enemy)
+    {
+        BoxCollider boxCollider = enemy.GetComponent<BoxCollider>();
+        MeshRenderer meshRenderer = enemy.GetComponent<MeshRenderer>();
+
+        if(boxCollider != null && boxCollider.enabled && meshRenderer != null && meshRenderer.enabled)
+        {
+            return true;
+        }
+
         return false;
     }
 

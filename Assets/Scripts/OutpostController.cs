@@ -31,7 +31,7 @@ public class OutpostController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        bool heroInOutpost = GetComponentInChildren<GameObjectTracker>().HasTargetInRange();
+        bool heroInOutpost = GetComponentInChildren<GameObjectTracker>().GetTargetsInRange().Count > 0;
         if (heroInOutpost)
         {
             chargingThresholdCrossed = Mathf.Repeat(outpostPower, chargingRewardInterval) > Mathf.Repeat(outpostPower + chargingRate, chargingRewardInterval);
