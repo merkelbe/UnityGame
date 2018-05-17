@@ -61,9 +61,12 @@ public class PlayerMovement : MonoBehaviour {
             verticalMovement = Input.GetAxis("Vertical");
             normalizer = Mathf.Sqrt(horizontalMovement * horizontalMovement + verticalMovement * verticalMovement);
 
-            playerRotation = Quaternion.Euler(0, this.transform.rotation.eulerAngles.y, 0);
-            movementVector = new Vector3(horizontalMovement * movementForce * Time.deltaTime / normalizer, 0, verticalMovement * movementForce * Time.deltaTime / normalizer) * 100;
-            rigidBody.AddForce(playerRotation * movementVector);
+            if (normalizer > 0)
+            {
+                playerRotation = Quaternion.Euler(0, this.transform.rotation.eulerAngles.y, 0);
+                movementVector = new Vector3(horizontalMovement * movementForce * Time.deltaTime / normalizer, 0, verticalMovement * movementForce * Time.deltaTime / normalizer) * 100;
+                rigidBody.AddForce(playerRotation * movementVector);
+            }
 
             // Reorients player if they're not orthogonal to the y = 1 plane.
             if (isDisoriented())
@@ -95,8 +98,10 @@ public class PlayerMovement : MonoBehaviour {
                 bulletCopy = GameObject.Instantiate(bullet, this.transform.position + playerRotation * bulletOffset, bulletRotation);
                 bulletCopy.GetComponent<BulletMovement>().Fire();
 
-                Destroy(bulletCopy, 10);
+                Destroy(bulletCopy, 2.5f);
             }
+
+
         }
     }
 

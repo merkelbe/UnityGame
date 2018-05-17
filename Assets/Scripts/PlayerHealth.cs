@@ -10,14 +10,8 @@ public class PlayerHealth : MonoBehaviour {
     public float StartingHP;
     public Text displayText;
 
-    // TODO: Maybe move this to a more global class
-    public DeathEvent OnDeath;
-
-    [Serializable]
-    public class DeathEvent : UnityEvent<GameObject> { };
-
     internal float CurrentHP;
-    private float respawnTime = 5;
+    private float respawnTime = 3;
     private float timer;
 
 	// Use this for initialization
@@ -72,16 +66,20 @@ public class PlayerHealth : MonoBehaviour {
 
     private void kill()
     {
+        // Stop the object from moving
+        GetComponent<Rigidbody>().velocity = Vector3.zero;
+
         GetComponent<MeshRenderer>().enabled = false;
         GetComponent<BoxCollider>().enabled = false;
-        OnDeath.Invoke(this.gameObject);
+        EventManager.RegisterDeath(this.gameObject);
     }
 
     private void respawn()
-    {
+    {   
         this.transform.SetPositionAndRotation(new Vector3(0.0f, 1.0f, 0.0f), Quaternion.identity);
         CurrentHP = StartingHP;
         this.GetComponent<MeshRenderer>().enabled = true;
         this.GetComponent<BoxCollider>().enabled = true;
+        EventManager.RegisterSpawn(this.gameObject);
     }
 }

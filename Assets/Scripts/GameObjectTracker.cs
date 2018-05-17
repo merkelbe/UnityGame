@@ -58,6 +58,18 @@ public class GameObjectTracker : MonoBehaviour {
         }
     }
 
+    private void OnEnable()
+    {
+        EventManager.OnDeath += StopTrackingGameObject;
+        EventManager.OnSpawn += StartTrackingGameObject;
+    }
+
+    private void OnDisable()
+    {
+        EventManager.OnDeath -= StopTrackingGameObject;
+        EventManager.OnSpawn -= StartTrackingGameObject;
+    }
+
     public void StopTrackingGameObject(GameObject gameObject)
     {
         if (targetsInRange.Contains(gameObject))
@@ -68,7 +80,7 @@ public class GameObjectTracker : MonoBehaviour {
 
     public void StartTrackingGameObject(GameObject gameObject)
     {
-        if (!targetsInRange.Contains(gameObject))
+        if(TargetInRange(gameObject) && !targetsInRange.Contains(gameObject))
         {
             targetsInRange.Add(gameObject);
         }
