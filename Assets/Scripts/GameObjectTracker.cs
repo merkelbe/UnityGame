@@ -16,9 +16,14 @@ public class GameObjectTracker : MonoBehaviour {
 	void Start ()
     {
         trackingRadius = this.transform.localScale.x;
+        RefreshTargets();
+    }
+
+    public void RefreshTargets()
+    {
         targetsInRange = new List<GameObject>();
         GameObject[] allGameObjects = GameObject.FindGameObjectsWithTag(TrackingTag);
-        foreach(GameObject gameObject in allGameObjects)
+        foreach (GameObject gameObject in allGameObjects)
         {
             if (TargetInRange(gameObject) && !targetsInRange.Contains(gameObject))
             {
@@ -80,7 +85,7 @@ public class GameObjectTracker : MonoBehaviour {
 
     public void StartTrackingGameObject(GameObject gameObject)
     {
-        if(TargetInRange(gameObject) && !targetsInRange.Contains(gameObject))
+        if(gameObject.CompareTag(TrackingTag) && TargetInRange(gameObject) && !targetsInRange.Contains(gameObject))
         {
             targetsInRange.Add(gameObject);
         }

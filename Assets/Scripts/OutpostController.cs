@@ -69,7 +69,9 @@ public class OutpostController : MonoBehaviour {
                 GameObject newTurret = Instantiate(turret, new Vector3(turretX, 11, turretZ), Quaternion.Euler(new Vector3(0, 0, 0)));
                 newTurret.transform.Find("Turret Base").tag = "Hero Team";
                 newTurret.transform.Find("Turret Head").tag = "Hero Team";
-                newTurret.GetComponentInChildren<GameObjectTracker>().TrackingTag = "Bad Guy Team";
+                GameObjectTracker gameObjectTracker = newTurret.GetComponentInChildren<GameObjectTracker>();
+                gameObjectTracker.TrackingTag = "Bad Guy Team";
+                newTurret.GetComponentInChildren<TurretFiring>().TurretDifficulty = 1; // Makes your turrets badasses.
                 turrets[i] = newTurret;
                 break;
             }

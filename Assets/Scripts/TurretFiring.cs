@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEngine.AI;
 
 public class TurretFiring : MonoBehaviour {
 
@@ -30,6 +31,10 @@ public class TurretFiring : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+        turretPosition = new Vector3();
+        enemyPosition = new Vector3();
+        enemyVelocity = new Vector3();
+
         timer = 0;
         bulletVelocity = Bullet.GetComponent<BulletMovement>().Speed * Time.fixedDeltaTime / Bullet.GetComponent<Rigidbody>().mass;
     }
@@ -48,15 +53,16 @@ public class TurretFiring : MonoBehaviour {
                 {
                     GameObject enemy = possibleEnemies[i];
 
-                    if (enemyAlive(enemy) && clearShotAtEnemy(enemy))
+                    if (clearShotAtEnemy(enemy))
                     {
-                        Vector3 turretPosition = this.transform.position;
-                        Vector3 enemyPosition = enemy.transform.position;
-                        Vector3 enemyVelocity = enemy.GetComponent<Rigidbody>().velocity;
+                        turretPosition = this.transform.position;
+                        enemyPosition = enemy.transform.position;
+                        NavMeshAgent navMeshAgent = enemy.GetComponent<NavMeshAgent>();
+                        enemyVelocity = navMeshAgent != null ? navMeshAgent.velocity : enemy.GetComponent<Rigidbody>().velocity;
 
-                        float a = Mathf.Pow(Vector3.Magnitude(enemyVelocity),2) - Mathf.Pow(bulletVelocity, 2);
-                        float b = 2 * (enemyPosition.x * enemyVelocity.x - turretPosition.x * enemyVelocity.x + enemyPosition.y * enemyVelocity.y - turretPosition.y * enemyVelocity.y + enemyPosition.z * enemyVelocity.z - turretPosition.z * enemyVelocity.z);
-                        float c = Mathf.Pow(Vector3.Distance(enemyPosition, turretPosition),2);
+                        a = Mathf.Pow(Vector3.Magnitude(enemyVelocity),2) - Mathf.Pow(bulletVelocity, 2);
+                        b = 2 * (enemyPosition.x * enemyVelocity.x - turretPosition.x * enemyVelocity.x + enemyPosition.y * enemyVelocity.y - turretPosition.y * enemyVelocity.y + enemyPosition.z * enemyVelocity.z - turretPosition.z * enemyVelocity.z);
+                        c = Mathf.Pow(Vector3.Distance(enemyPosition, turretPosition),2);
 
                         List<float> solutions = solveQuadratic(a, b, c);
                         if(solutions.Count > 0)
@@ -95,19 +101,6 @@ public class TurretFiring : MonoBehaviour {
                 return true;
             }
         }
-        return false;
-    }
-
-    private bool enemyAlive(GameObject enemy)
-    {
-        BoxCollider boxCollider = enemy.GetComponent<BoxCollider>();
-        MeshRenderer meshRenderer = enemy.GetComponent<MeshRenderer>();
-
-        if(boxCollider != null && boxCollider.enabled && meshRenderer != null && meshRenderer.enabled)
-        {
-            return true;
-        }
-
         return false;
     }
 
