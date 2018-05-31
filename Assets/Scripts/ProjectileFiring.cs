@@ -4,22 +4,24 @@ using UnityEngine;
 using System.Linq;
 using UnityEngine.AI;
 
-public class TurretFiring : MonoBehaviour {
+public class ProjectileFiring : MonoBehaviour {
 
-    public float CoolDownTime = 5;
+    public float CoolDownTime;
+    public float ShootingRange;
     public GameObject Bullet;
+    private GameObjectTracker gameObjectTracker;
 
-    // Difficulty of Turret from 0 to 1.  
-    // Zero shoots at where they are right now and 
-    // 1 shoots at where they will be if they keep the current velocity.
+    // Shooting Skill from 0 to 1.  
+    // Shooting Skill of 0 shoots at where they are right now and 
+    // Shooting Skill of 1 shoots at where they will be if they keep the current velocity.
     [Range(0, 1)]
-    public float TurretDifficulty;
+    public float ShootingSkill;
 
     private float bulletVelocity;
     
     private float timer;
 
-    private Vector3 turretPosition;
+    private Vector3 thisGameObjectPosition;
     private Vector3 enemyPosition;
     private Vector3 enemyVelocity;
 
@@ -31,7 +33,7 @@ public class TurretFiring : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        turretPosition = new Vector3();
+        thisGameObjectPosition = new Vector3();
         enemyPosition = new Vector3();
         enemyVelocity = new Vector3();
 
@@ -41,8 +43,8 @@ public class TurretFiring : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        GameObjectTracker gameObjectTracker = GetComponentInChildren<GameObjectTracker>();
-        bool hasTargetInRange = gameObjectTracker.GetTargetsInRange().Count > 0;
+        gameObjectTracker = GetComponentInChildren<GameObjectTracker>();
+        bool hasTargetInRange = gameObjectTracker.HasTargetInRange();
         if (hasTargetInRange)
         {
             if(timer == 0)
@@ -55,24 +57,30 @@ public class TurretFiring : MonoBehaviour {
 
                     if (clearShotAtEnemy(enemy))
                     {
-                        turretPosition = this.transform.position;
+                        thisGameObjectPosition = this.transform.position;
                         enemyPosition = enemy.transform.position;
-                        NavMeshAgent navMeshAgent = enemy.GetComponent<NavMeshAgent>();
-                        enemyVelocity = navMeshAgent != null ? navMeshAgent.velocity : enemy.GetComponent<Rigidbody>().velocity;
-
-                        a = Mathf.Pow(Vector3.Magnitude(enemyVelocity),2) - Mathf.Pow(bulletVelocity, 2);
-                        b = 2 * (enemyPosition.x * enemyVelocity.x - turretPosition.x * enemyVelocity.x + enemyPosition.y * enemyVelocity.y - turretPosition.y * enemyVelocity.y + enemyPosition.z * enemyVelocity.z - turretPosition.z * enemyVelocity.z);
-                        c = Mathf.Pow(Vector3.Distance(enemyPosition, turretPosition),2);
-
-                        List<float> solutions = solveQuadratic(a, b, c);
-                        if(solutions.Count > 0)
+                        if (Vector3.Distance(thisGameObjectPosition, enemyPosition) < ShootingRange)
                         {
-                            float solution = solutions.Max();
-                            Vector3 enemyFuturePosition = enemyPosition + solution * TurretDifficulty * enemyVelocity;
-                            FireAt(enemyFuturePosition);
+                            NavMeshAgent navMeshAgent = enemy.GetComponent<NavMeshAgent>();
+                            enemyVelocity = navMeshAgent != null ? navMeshAgent.velocity : enemy.GetComponent<Rigidbody>().velocity;
+
+                            a = Mathf.Pow(Vector3.Magnitude(enemyVelocity), 2) - Mathf.Pow(bulletVelocity, 2);
+                            b = 2 * (enemyPosition.x * enemyVelocity.x - thisGameObjectPosition.x * enemyVelocity.x + enemyPosition.y * enemyVelocity.y - thisGameObjectPosition.y * enemyVelocity.y + enemyPosition.z * enemyVelocity.z - thisGameObjectPosition.z * enemyVelocity.z);
+                            c = Mathf.Pow(Vector3.Distance(enemyPosition, thisGameObjectPosition), 2);
+
+                            List<float> solutions = solveQuadratic(a, b, c);
+                            if (solutions.Count > 0)
+                            {
+                                // For this equation, there should almost always be a positive and negative solution.
+                                // The negative solution corresponds to where the turret should fire so that it'd hit it in the past (doesn't make sense).
+                                // We just want the positive solution, which is why we take the max.
+                                float solution = solutions.Max();
+                                Vector3 enemyFuturePosition = enemyPosition + solution * ShootingSkill * enemyVelocity;
+                                FireAt(enemyFuturePosition);
+                            }
+
+                            timer = CoolDownTime;
                         }
-                        
-                        timer = CoolDownTime;
                         break;
                     }
                 }
@@ -117,6 +125,7 @@ public class TurretFiring : MonoBehaviour {
         Quaternion bulletOrientation = Quaternion.FromToRotation(Vector3.up, fireDirection);
         GameObject bulletCopy = GameObject.Instantiate(Bullet, bulletSpawnPosition, bulletOrientation);
         bulletCopy.GetComponent<BulletMovement>().Fire();
+        Destroy(bulletCopy, 2.5f);
     }
 
     // Solves for x in equation ax^2 + bx + c = 0.  Returns only real solutions.
@@ -139,8 +148,7 @@ public class TurretFiring : MonoBehaviour {
             solutions.Add((-b - discriminant) / 2 / a);
         }
 
-        // No solutions if discriminant squared is less than 0
-
+        // No real solutions if discriminant squared is less than 0
         return solutions;
     }
 }

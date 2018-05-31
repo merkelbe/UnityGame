@@ -1,24 +1,26 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
 
 public class EnemyManager : MonoBehaviour, IDamageable, IKillable {
 
-    internal GameObject Target;
+    GameObject target;
     NavMeshAgent navMeshAgent;
+    GameObjectTracker gameObjectTracker;
 
-    internal int StartingHP;
+    public int StartingHP;
     public int HP { get; set; }
-    internal Text DisplayText;
-    internal float FollowDistance;
+    public Text DisplayText;
+    public float FollowDistance;
 
     // Called once when object is initialized
     private void Awake()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
-        EventManager.RegisterSpawn(this.gameObject);
+
     }
 
     // Use this for initialization
@@ -26,18 +28,26 @@ public class EnemyManager : MonoBehaviour, IDamageable, IKillable {
         navMeshAgent.stoppingDistance = FollowDistance;
         navMeshAgent.autoBraking = true;
         HP = StartingHP;
+        EventManager.RegisterSpawn(this.gameObject);
     }
 	
 	// Update is called once per frame
 	void Update () {
-        navMeshAgent.SetDestination(Target.transform.position);
-        
-	}
+        gameObjectTracker = GetComponentInChildren<GameObjectTracker>();
+        if (gameObjectTracker.HasTargetInRange())
+        {
+            // Testing to see if clamping point they need to go to to y=0 plane gives them continuous speed.
+            target = gameObjectTracker.GetTargetsInRange().First();
+            Vector3 position = new Vector3(target.transform.position.x, 0.0f, target.transform.position.z);
+            navMeshAgent.SetDestination(position);
+        }
+
+    }
 
     private void OnCollisionEnter(Collision collision)
     {
         GameObject thingCollidedWith = collision.gameObject;
-        if (thingCollidedWith.CompareTag("Bullet"))
+        if (thingCollidedWith.GetComponent<Tags>() != null && thingCollidedWith.GetComponent<Tags>().Contains("Bullet"))
         {
             int damage = thingCollidedWith.GetComponent<BulletDamage>().damage;
             TakeDamage(damage);

@@ -9,19 +9,26 @@ public class GameObjectTracker : MonoBehaviour {
 
     private float trackingRadius; // ASSUMPTION: Transform is in shape of a cylinder
 
+    // Currently will sort targets by distance (closest to farthest away)
     private List<GameObject> targetsInRange;
+    private DistanceSorter distanceSorter;
 
-
-	// Use this for initialization
-	void Start ()
+    private void Awake()
     {
+        targetsInRange = new List<GameObject>();
         trackingRadius = this.transform.localScale.x;
+        distanceSorter = new DistanceSorter(this.transform.position);
+    }
+
+    // Use this for initialization
+    void Start ()
+    {
         RefreshTargets();
     }
 
     public void RefreshTargets()
     {
-        targetsInRange = new List<GameObject>();
+        targetsInRange.Clear();
         GameObject[] allGameObjects = GameObject.FindGameObjectsWithTag(TrackingTag);
         foreach (GameObject gameObject in allGameObjects)
         {
@@ -30,6 +37,14 @@ public class GameObjectTracker : MonoBehaviour {
                 targetsInRange.Add(gameObject);
             }
         }
+        sortTargets();
+    }
+
+
+    void sortTargets()
+    {
+        distanceSorter.CurrentPosition = this.transform.position;
+        targetsInRange.Sort(distanceSorter);
     }
 	
 	// Update is called once per frame
@@ -37,19 +52,26 @@ public class GameObjectTracker : MonoBehaviour {
 
 	}
 
+    public bool HasTargetInRange()
+    {
+        return targetsInRange.Count > 0;
+    }
+
     public List<GameObject> GetTargetsInRange()
     {
+        sortTargets();
         return targetsInRange;
     }
 
     private void OnTriggerEnter(Collider other)
     {
         GameObject entity = other.gameObject;
-        if (entity.CompareTag(TrackingTag))
+        if (entity.GetComponent<Tags>()!= null && entity.GetComponent<Tags>().Contains(TrackingTag))
         {
             if (!targetsInRange.Contains(entity))
             {
                 targetsInRange.Add(entity);
+                sortTargets();
             }
         }
     }
@@ -57,7 +79,7 @@ public class GameObjectTracker : MonoBehaviour {
     private void OnTriggerExit(Collider other)
     {
         GameObject entity = other.gameObject;
-        if (entity.CompareTag(TrackingTag))
+        if (entity.GetComponent<Tags>() != null && entity.GetComponent<Tags>().Contains(TrackingTag))
         {
             StopTrackingGameObject(entity);
         }
@@ -85,9 +107,10 @@ public class GameObjectTracker : MonoBehaviour {
 
     public void StartTrackingGameObject(GameObject gameObject)
     {
-        if(gameObject.CompareTag(TrackingTag) && TargetInRange(gameObject) && !targetsInRange.Contains(gameObject))
+        if(gameObject.GetComponent<Tags>() != null && gameObject.GetComponent<Tags>().Contains(TrackingTag) && TargetInRange(gameObject) && !targetsInRange.Contains(gameObject))
         {
             targetsInRange.Add(gameObject);
+            sortTargets();
         }
     }
 
@@ -100,3 +123,21 @@ public class GameObjectTracker : MonoBehaviour {
         return Vector3.Distance(turretXZPosition, gameObjectXZPosition) <= trackingRadius;
     }
 }
+
+// Sorts game objects by distance they are away from this game object.
+public class DistanceSorter : IComparer<GameObject>
+{
+    public Vector3 CurrentPosition;
+
+    public DistanceSorter(Vector3 _currentPosition)
+    {
+        CurrentPosition = _currentPosition;
+    }
+
+    public int Compare(GameObject _firstGameObject, GameObject _secondGameObject)
+    {
+        // Want closer objects earlier in gameObject list
+        return (int)(Vector3.Distance(CurrentPosition, _firstGameObject.transform.position) - Vector3.Distance(CurrentPosition, _secondGameObject.transform.position));
+    }
+}
+

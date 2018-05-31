@@ -178,7 +178,7 @@ public class PlayerManager : MonoBehaviour, IDamageable, IKillable {
     private void OnCollisionEnter(Collision collision)
     {
         GameObject thingCollidedWith = collision.gameObject;
-        if (thingCollidedWith.CompareTag("Bullet"))
+        if (thingCollidedWith.GetComponent<Tags>() != null && thingCollidedWith.GetComponent<Tags>().Contains("Bullet"))
         {
             int damage = thingCollidedWith.GetComponent<BulletDamage>().damage;
             TakeDamage(damage);
@@ -190,7 +190,7 @@ public class PlayerManager : MonoBehaviour, IDamageable, IKillable {
             }
         }
 
-        else if(thingCollidedWith.name == "Enemy" || thingCollidedWith.name == "Enemy(Clone)")
+        else if(thingCollidedWith.GetComponent<Tags>()!= null && thingCollidedWith.GetComponent<Tags>().Contains("Bad Guy Team"))
         {
             Kill();
         }

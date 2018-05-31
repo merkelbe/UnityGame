@@ -16,7 +16,7 @@ public class CollisionDetection : MonoBehaviour {
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Bullet"))
+        if (collision.gameObject.GetComponent<Tags>() != null && collision.gameObject.GetComponent<Tags>().Contains("Bullet"))
         {
             Destroy(collision.gameObject);
         }

@@ -16,7 +16,7 @@ public class DamageHandlerChild : MonoBehaviour {
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Bullet"))
+        if (collision.gameObject.GetComponent<Tags>() != null && collision.gameObject.GetComponent<Tags>().Contains("Bullet"))
         {
             int damage = collision.gameObject.GetComponent<BulletDamage>().damage;
             BulletDamage damageScript = collision.gameObject.GetComponent<BulletDamage>();

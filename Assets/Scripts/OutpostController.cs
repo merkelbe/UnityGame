@@ -31,25 +31,22 @@ public class OutpostController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        bool heroInOutpost = GetComponentInChildren<GameObjectTracker>().GetTargetsInRange().Count > 0;
+        bool heroInOutpost = GetComponentInChildren<GameObjectTracker>().HasTargetInRange();
         if (heroInOutpost)
         {
             chargingThresholdCrossed = Mathf.Repeat(outpostPower, chargingRewardInterval) > Mathf.Repeat(outpostPower + chargingRate, chargingRewardInterval);
+            outpostPower = Mathf.Min(outpostPower + chargingRate, maxOutpostPower);
             if (chargingThresholdCrossed)
             {
                 GiveChargingReward();
             }
-            outpostPower = Mathf.Min(outpostPower + chargingRate, maxOutpostPower);
-
             displayText.text = string.Format("Outpost Power: {0:P2}", outpostPower/100);
         }
-
+        if(outpostPower >= maxOutpostPower)
+        {
+            DoAutonomousStuff();
+        }
 	}
-
-    public void TakeDamage(int damageAmount)
-    {
-        // Currently the outposts are indestructable.
-    }
 
 
     // Currently builds turrets when charging
@@ -67,12 +64,14 @@ public class OutpostController : MonoBehaviour {
                 float turretX = 7 * Mathf.Pow(-1, i) + this.transform.position.x; 
                 float turretZ = 7 * (Mathf.Floor(i / 2)*2 -1) + this.transform.position.z;
                 GameObject newTurret = Instantiate(turret, new Vector3(turretX, 11, turretZ), Quaternion.Euler(new Vector3(0, 0, 0)));
-                newTurret.transform.Find("Turret Base").tag = "Hero Team";
-                newTurret.transform.Find("Turret Head").tag = "Hero Team";
-                GameObjectTracker gameObjectTracker = newTurret.GetComponentInChildren<GameObjectTracker>();
-                gameObjectTracker.TrackingTag = "Bad Guy Team";
-                newTurret.GetComponentInChildren<TurretFiring>().TurretDifficulty = 1; // Makes your turrets badasses.
+
+                //newTurret.transform.Find("Turret Base").tag = "Hero Team";
+                //newTurret.transform.Find("Turret Head").tag = "Hero Team";
+                //GameObjectTracker gameObjectTracker = newTurret.GetComponentInChildren<GameObjectTracker>();
+                //gameObjectTracker.TrackingTag = "Bad Guy Team";
+                //newTurret.GetComponentInChildren<ProjectileFiring>().ShootingSkill = 1; // Makes your turrets badasses.
                 turrets[i] = newTurret;
+                EventManager.RegisterSpawn(newTurret);
                 break;
             }
         }
@@ -81,5 +80,26 @@ public class OutpostController : MonoBehaviour {
     void DoAutonomousStuff()
     {
 
+    }
+
+    private void OnEnable()
+    {
+        EventManager.OnDeath += RegisterTurretDeath;
+    }
+
+    private void OnDisable()
+    {
+        EventManager.OnDeath -= RegisterTurretDeath;
+    }
+
+    public void RegisterTurretDeath(GameObject _turret)
+    {
+        foreach(GameObject turret in turrets)
+        {
+            if(turret == _turret)
+            {
+                outpostPower -= chargingRewardInterval;
+            }
+        }
     }
 }

@@ -7,13 +7,18 @@ using UnityEngine.UI;
 
 public class EnemySpawner : MonoBehaviour {
 
-    public GameObject Enemy;
-    public GameObject EnemyTarget;
+    public GameObject[] Enemies;
     public Text EnemyHealthText;
     public Transform[] SpawnPositions;
     public float SpawnFrequency;
     public int StartingHP;
-    public float FollowDistance; 
+    public float FollowDistance;
+    public GameObject EnemyBullet;
+    public string EnemyTrackingTag;
+    public float EnemyShootingRange;
+    public float EnemyCoolDownTime;
+    [Range(0, 1)]
+    public float EnemyShootingSkill;
 
 	// Use this for initialization
 	void Start () {
@@ -28,6 +33,7 @@ public class EnemySpawner : MonoBehaviour {
     void Spawn()
     {
         shuffle(ref SpawnPositions);
+        shuffle(ref Enemies);
         for(int i = 0; i < SpawnPositions.Length; ++i)
         {
             Vector3 possibleSpawnPoint = SpawnPositions[i].transform.position;
@@ -37,12 +43,19 @@ public class EnemySpawner : MonoBehaviour {
 
             if (spaceEmpty)
             {
-                GameObject enemy = Instantiate(Enemy, possibleSpawnPoint, Quaternion.identity);
-                EnemyManager enemyManager = enemy.GetComponent<EnemyManager>();
-                enemyManager.Target = EnemyTarget;
-                enemyManager.DisplayText = EnemyHealthText;
-                enemyManager.StartingHP = StartingHP;
-                enemyManager.FollowDistance = FollowDistance;
+                // Enemy initializations
+                GameObject enemy = Instantiate(Enemies[0], possibleSpawnPoint, Quaternion.identity);
+                //EnemyManager enemyManager = enemy.GetComponent<EnemyManager>();
+                //enemyManager.DisplayText = EnemyHealthText;
+                //enemyManager.StartingHP = StartingHP;
+                //enemyManager.FollowDistance = FollowDistance;
+                //ProjectileFiring projectileFiring = enemy.GetComponent<ProjectileFiring>();
+                //projectileFiring.CoolDownTime = EnemyCoolDownTime;
+                //projectileFiring.ShootingRange = EnemyShootingRange;
+                //projectileFiring.ShootingSkill = EnemyShootingSkill;
+                //GameObjectTracker gameObjectTracker = enemy.GetComponentInChildren<GameObjectTracker>();
+                //gameObjectTracker.TrackingTag = EnemyTrackingTag;
+                EventManager.RegisterSpawn(enemy);
                 break;
             }
         }
